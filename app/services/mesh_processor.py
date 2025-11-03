@@ -113,7 +113,7 @@ class MeshProcessor:
                     eigenvals_k = np.linalg.eigvals(K)
                     eigenvals_k = eigenvals_k[eigenvals_k > 1e-10]  # Remove near-zero eigenvalues
                     condition_number = np.max(eigenvals_k) / np.min(eigenvals_k)
-                except:
+                except (np.linalg.LinAlgError, ValueError, RuntimeError):
                     condition_number = self._estimate_condition_number(K)
             else:
                 condition_number = self._estimate_condition_number(K)
@@ -161,8 +161,8 @@ class MeshProcessor:
             lambda_min = np.trace(matrix) / n * 0.01  # Rough estimate
             
             return lambda_max / max(lambda_min, 1e-10)
-            
-        except:
+
+        except (np.linalg.LinAlgError, ValueError, RuntimeError):
             # Fallback: use diagonal dominance
             diag = np.abs(np.diag(matrix))
             off_diag = np.sum(np.abs(matrix), axis=1) - diag
@@ -199,7 +199,7 @@ class MeshProcessor:
                         return False, "Mesh contains no vertices"
                     if len(mesh.cells) == 0:
                         return False, "Mesh contains no elements"
-                except:
+                except (IOError, ValueError, KeyError, RuntimeError):
                     return False, "Invalid mesh file format"
             
             return True, "Valid mesh file"

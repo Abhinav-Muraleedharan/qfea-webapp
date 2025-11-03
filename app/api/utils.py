@@ -4,6 +4,8 @@ Utility functions for API routes
 
 from flask import current_app, jsonify
 from pathlib import Path
+from datetime import datetime
+import math
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -52,16 +54,15 @@ def get_file_size(file_path):
     """Get file size in bytes"""
     try:
         return Path(file_path).stat().st_size
-    except:
+    except (OSError, FileNotFoundError):
         return 0
 
 def format_file_size(size_bytes):
     """Format file size in human readable format"""
     if size_bytes == 0:
         return "0B"
-    
+
     size_names = ["B", "KB", "MB", "GB", "TB"]
-    import math
     i = int(math.floor(math.log(size_bytes, 1024)))
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
@@ -95,5 +96,3 @@ def validate_simulation_parameters(params):
         return False, f"Max Pauli terms cannot exceed {current_app.config['MAX_PAULI_TERMS']}"
     
     return True, "Valid parameters"
-
-from datetime import datetime
