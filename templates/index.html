@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Header -->
+        <div class="col-12 mb-4">
+            <div class="text-center">
+                <h1 class="display-4">
+                    <i class="fas fa-atom"></i> Quantum Finite Element Analysis
+                </h1>
+                <p class="lead">Upload your mesh, configure parameters, and run quantum simulations</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Panel - Upload & Configuration -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-upload"></i> Upload Mesh</h5>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="meshFile" class="form-label">Mesh File</label>
+                            <input type="file" class="form-control" id="meshFile" name="file"
+                                   accept=".vtk,.mesh,.msh,.obj,.stl,.ply" required>
+                            <small class="form-text text-muted">
+                                Supported formats: VTK, MESH, MSH, OBJ, STL, PLY (Max 500MB)
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="materialPreset" class="form-label">Material Preset</label>
+                            <select class="form-select" id="materialPreset">
+                                <option value="">Custom Material</option>
+                                <option value="steel" selected>Steel</option>
+                                <option value="aluminum">Aluminum</option>
+                                <option value="concrete">Concrete</option>
+                                <option value="titanium">Titanium</option>
+                                <option value="copper">Copper</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="youngModulus" class="form-label">Young's Modulus (Pa)</label>
+                            <input type="number" class="form-control" id="youngModulus"
+                                   value="200000000000" step="1000000000">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="poissonRatio" class="form-label">Poisson's Ratio</label>
+                            <input type="number" class="form-control" id="poissonRatio"
+                                   value="0.3" step="0.01" min="0" max="0.5">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="density" class="form-label">Density (kg/m³)</label>
+                            <input type="number" class="form-control" id="density"
+                                   value="7850" step="10">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
+                            <i class="fas fa-upload"></i> Upload Mesh
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quantum Simulation Parameters -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Quantum Parameters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="simTime" class="form-label">Simulation Time</label>
+                        <input type="number" class="form-control" id="simTime" value="1.0" step="0.1" min="0.1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="trotterSteps" class="form-label">Trotter Steps</label>
+                        <input type="number" class="form-control" id="trotterSteps" value="10" min="1" max="1000">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="maxPauliTerms" class="form-label">Max Pauli Terms</label>
+                        <input type="number" class="form-control" id="maxPauliTerms" value="100" min="1" max="1000">
+                    </div>
+
+                    <button type="button" class="btn btn-success w-100" id="runSimulationBtn" disabled>
+                        <i class="fas fa-play"></i> Run Simulation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Visualization & Results -->
+        <div class="col-lg-8">
+            <!-- Status Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Status</h5>
+                </div>
+                <div class="card-body">
+                    <div id="statusMessage" class="alert alert-secondary">
+                        <i class="fas fa-info-circle"></i> Ready. Please upload a mesh file to begin.
+                    </div>
+                    <div id="progressSection" class="d-none">
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                 role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                        <small id="progressText" class="text-muted"></small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mesh Info Card -->
+            <div class="card shadow-sm mb-4 d-none" id="meshInfoCard">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-cube"></i> Mesh Information</h5>
+                </div>
+                <div class="card-body">
+                    <div id="meshInfo"></div>
+                </div>
+            </div>
+
+            <!-- Visualization Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-eye"></i> Visualization</h5>
+                </div>
+                <div class="card-body">
+                    <div id="visualizationContainer" style="min-height: 400px; background: #f8f9fa; border-radius: 5px;">
+                        <div class="d-flex align-items-center justify-content-center h-100" style="min-height: 400px;">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-cube fa-3x mb-3"></i>
+                                <p>3D visualization will appear here after mesh upload</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Card -->
+            <div class="card shadow-sm d-none" id="resultsCard">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Simulation Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultsContent"></div>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary me-2" id="exportJsonBtn">
+                            <i class="fas fa-download"></i> Export JSON
+                        </button>
+                        <button class="btn btn-outline-success me-2" id="exportCsvBtn">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="btn btn-outline-info" id="exportQasmBtn">
+                            <i class="fas fa-code"></i> Export QASM
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/visualization.js') }}"></script>
+<script src="{{ url_for('static', filename='js/quantum.js') }}"></script>
+{% endblock %}

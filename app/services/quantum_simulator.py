@@ -222,7 +222,7 @@ class QuantumSimulator:
                 return str(circuit.draw(output='text', fold=-1))
             else:
                 return self._generate_circuit_ascii(circuit)
-        except:
+        except (AttributeError, ValueError, RuntimeError):
             return "Circuit visualization not available"
     
     def _generate_circuit_ascii(self, circuit):
